@@ -59,7 +59,7 @@ function ChatForm() {
      <div className="flex items-center gap-2 min-w-[250px] w-full xs:w-auto">
       <label
        htmlFor="fileInput"
-       className="text-[11px] bg-secondary px-[15px] py-[11px] rounded-[10px] cursor-pointer text-primary font-semibold tracking-[-2%]"
+       className="text-[11px] bg-secondary px-[15px] py-2 rounded-[10px] cursor-pointer text-primary font-semibold tracking-[-2%]"
       >
        Choose File
       </label>
