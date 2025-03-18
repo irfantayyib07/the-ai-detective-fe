@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -16,6 +16,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 function ChatForm() {
+ const fileInputRef = useRef<HTMLInputElement>(null);
  const [fileName, setFileName] = useState<string>("No file chosen");
  const [isUploading, setIsUploading] = useState<boolean>(false);
 
@@ -58,12 +59,19 @@ function ChatForm() {
     <CardContent className="p-0 flex flex-col gap-3 xs:flex-row items-center justify-between">
      <div className="flex items-center gap-2 min-w-[250px] w-full xs:w-auto">
       <label
+       tabIndex={0}
        htmlFor="fileInput"
-       className="text-[11px] bg-secondary px-[15px] py-2 rounded-[10px] cursor-pointer text-primary font-semibold tracking-[-2%]"
+       className="text-[11px] bg-secondary px-[15px] py-2 rounded-[10px] cursor-pointer text-primary font-semibold tracking-[-2%] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus:outline-none"
+       onKeyDown={e => {
+        if (e.key === "Enter" || e.key === " ") {
+         e.preventDefault();
+         fileInputRef?.current?.click();
+        }
+       }}
       >
        Choose File
       </label>
-      <input id="fileInput" type="file" className="hidden" onChange={handleFileChange} />
+      <input id="fileInput" type="file" className="hidden" onChange={handleFileChange} ref={fileInputRef} />
       <span className="text-primary text-[11px] tracking-[-2%]">{fileName}</span>
      </div>
      <Button
