@@ -6,9 +6,9 @@ function MainLayout() {
   <>
    <Header />
    <main
-    className="bg-green-radial from-light-green to-mint-green relative z-[1] pt-24 sm:pt-32 flex flex-col items-center px-3 sm:px-6 pb-6 sm:pb-9 md:pb-11"
+    className="bg-green-radial from-light-green to-mint-green relative z-[1] pt-24 sm:pt-32 flex flex-col items-center px-3 sm:px-6 pb-6 sm:pb-9 md:pb-11 overflow-y-auto"
     style={{
-     minHeight: "calc(100dvh - 55px)",
+     height: "calc(100dvh - 55px)",
     }}
    >
     <Outlet />
