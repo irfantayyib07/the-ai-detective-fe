@@ -79,7 +79,7 @@ function ChatForm() {
    <Card className="px-[20px] pt-[20px] pb-10">
     <CardContent className="p-0">
      <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
        <FormField
         control={form.control}
         name="question"
