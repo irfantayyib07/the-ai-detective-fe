@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ["class"],
-  content: ["./src/**/*.{html,js}"],
+  content: ["./src/**/*.{html,js,jsx,ts,tsx}"],
   theme: {
     extend: {
       borderRadius: {
@@ -10,6 +10,8 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
+        "light-green": "#E2F9DD",
+        "mint-green": "#C4EABC",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -23,6 +25,7 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          muted: "hsl(var(--primary-muted))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -51,6 +54,12 @@ export default {
           5: "hsl(var(--chart-5))",
         },
       },
+      backgroundImage: {
+        "green-radial": "radial-gradient(circle, var(--tw-gradient-stops))",
+      },
+      gradientColorStops: (theme) => ({
+        ...theme("colors"),
+      }),
     },
   },
   plugins: [require("tailwindcss-animate")],
