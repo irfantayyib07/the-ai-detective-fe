@@ -61,45 +61,45 @@ function ChatForm() {
   }
  };
 
- useEffect(() => {
-  const message: Message = {
-   id: `ai-${Date.now()}`,
-   summary: "**Likelihood of AI Usage: 2 (Unlikely)**",
-   content: `### Analysis:
+ //  useEffect(() => {
+ //   const message: Message = {
+ //    id: `ai-${Date.now()}`,
+ //    summary: "**Likelihood of AI Usage: 2 (Unlikely)**",
+ //    content: `### Analysis:
 
-Upon reviewing the content of the uploaded document titled *"Shopify.docx"*, the following observations were made:
+ // Upon reviewing the content of the uploaded document titled *"Shopify.docx"*, the following observations were made:
 
-#### Indicators of AI Authorship:
-1. **Structured Organisation**: The document is well-organised, with clear headings and subheadings such as "Understanding Shopify," "Shopify Development Tools and Technologies," and "Shopify API." This level of structure is characteristic of both human and AI-generated content.
-2. **Neutral Tone and Formality**: The tone is formal and neutral, which is typical of professional or technical writing. However, this does not strongly indicate AI authorship as it aligns with the expected style for such a topic.
-3. **Absence of Personalisation**: The text lacks personal anecdotes, subjective opinions, or emotional depth, which are often absent in AI-generated content. However, this is also appropriate for the technical nature of the document.
+ // #### Indicators of AI Authorship:
+ // 1. **Structured Organisation**: The document is well-organised, with clear headings and subheadings such as "Understanding Shopify," "Shopify Development Tools and Technologies," and "Shopify API." This level of structure is characteristic of both human and AI-generated content.
+ // 2. **Neutral Tone and Formality**: The tone is formal and neutral, which is typical of professional or technical writing. However, this does not strongly indicate AI authorship as it aligns with the expected style for such a topic.
+ // 3. **Absence of Personalisation**: The text lacks personal anecdotes, subjective opinions, or emotional depth, which are often absent in AI-generated content. However, this is also appropriate for the technical nature of the document.
 
-#### Indicators of Human Authorship:
-1. **Technical Accuracy and Contextual Relevance**: The content demonstrates a clear understanding of Shopify development, including specific tools (e.g., Shopify CLI, Liquid, APIs) and technologies (e.g., Node.js, Python, Ruby on Rails). This level of detail suggests domain expertise, which is more indicative of human authorship.
-2. **Natural Language Flow**: The phrasing and sentence structures appear natural and free from the repetitive patterns or unnatural idioms often found in AI-generated text.
-3. **No Overuse of Passive Voice**: The document uses active voice predominantly, which is a common trait of human writing.
-4. **No Excessive Formality or Advanced Vocabulary**: The vocabulary is appropriate for the subject matter and does not exhibit the excessive formality or overly complex language sometimes seen in AI-generated content.
+ // #### Indicators of Human Authorship:
+ // 1. **Technical Accuracy and Contextual Relevance**: The content demonstrates a clear understanding of Shopify development, including specific tools (e.g., Shopify CLI, Liquid, APIs) and technologies (e.g., Node.js, Python, Ruby on Rails). This level of detail suggests domain expertise, which is more indicative of human authorship.
+ // 2. **Natural Language Flow**: The phrasing and sentence structures appear natural and free from the repetitive patterns or unnatural idioms often found in AI-generated text.
+ // 3. **No Overuse of Passive Voice**: The document uses active voice predominantly, which is a common trait of human writing.
+ // 4. **No Excessive Formality or Advanced Vocabulary**: The vocabulary is appropriate for the subject matter and does not exhibit the excessive formality or overly complex language sometimes seen in AI-generated content.
 
-#### Ambiguities:
-- The document's technical nature and lack of personalisation could be misconstrued as AI-generated. However, these traits are consistent with the expected style for a professional guide on Shopify development.
+ // #### Ambiguities:
+ // - The document's technical nature and lack of personalisation could be misconstrued as AI-generated. However, these traits are consistent with the expected style for a professional guide on Shopify development.
 
----
+ // ---
 
-### Recommendation:
+ // ### Recommendation:
 
-Based on the analysis, the likelihood of AI involvement in the creation of this document is **Unlikely (2)**. The content demonstrates technical expertise, natural language flow, and appropriate tone, all of which align with human authorship. 
+ // Based on the analysis, the likelihood of AI involvement in the creation of this document is **Unlikely (2)**. The content demonstrates technical expertise, natural language flow, and appropriate tone, all of which align with human authorship.
 
-However, to ensure a thorough evaluation:
-1. **Human Review**: It is recommended that an educator or subject matter expert reviews the document for any stylistic or contextual inconsistencies that may not be apparent through automated analysis.
-2. **Comparison with Student's Previous Work**: If applicable, compare the document's style and complexity with the student's prior submissions to identify any significant deviations.
+ // However, to ensure a thorough evaluation:
+ // 1. **Human Review**: It is recommended that an educator or subject matter expert reviews the document for any stylistic or contextual inconsistencies that may not be apparent through automated analysis.
+ // 2. **Comparison with Student's Previous Work**: If applicable, compare the document's style and complexity with the student's prior submissions to identify any significant deviations.
 
-This approach will help confirm the authenticity of the document while maintaining fairness and academic integrity.`,
-   isUser: false,
-  };
-  message.contentHtml = markdownToHtml(message.content);
-  message.summaryHtml = markdownToHtml(message?.summary || "");
-  setMessages([message]);
- }, []);
+ // This approach will help confirm the authenticity of the document while maintaining fairness and academic integrity.`,
+ //    isUser: false,
+ //   };
+ //   message.contentHtml = markdownToHtml(message.content);
+ //   message.summaryHtml = markdownToHtml(message?.summary || "");
+ //   setMessages([message]);
+ //  }, []);
 
  const { mutate: uploadDocument, isPending: isUploadingDocument } = useUploadDocument(
   data => {
