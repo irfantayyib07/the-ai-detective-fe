@@ -1,8 +1,8 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import MainLayout from "./Layout";
 import Chat from "./pages/Chat";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
+import Login from "./pages/Auth/Login";
+import Signup from "./pages/Auth/Signup";
 import { Toaster } from "react-hot-toast";
 
 function App() {

@@ -1,4 +1,3 @@
-import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -6,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useLogin } from "@/services/auth-services";
+import toast from "react-hot-toast";
 
 const loginSchema = z.object({
  username: z.string().min(1, "Username is required"),
@@ -15,7 +16,9 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-const LoginForm: React.FC = () => {
+const LoginForm = () => {
+ const navigate = useNavigate();
+
  const form = useForm<LoginFormData>({
   resolver: zodResolver(loginSchema),
   defaultValues: {
@@ -24,8 +27,19 @@ const LoginForm: React.FC = () => {
   },
  });
 
+ const { mutate: loginMutation, isPending } = useLogin(
+  () => {
+   toast.success("Login successful!");
+   navigate("/chat");
+  },
+
+  () => {
+   toast.error("Login failed");
+  },
+ );
+
  const onSubmit = (data: LoginFormData) => {
-  console.log("Form submitted:", data);
+  loginMutation(data);
  };
 
  return (
@@ -46,7 +60,6 @@ const LoginForm: React.FC = () => {
         </FormItem>
        )}
       />
-
       <FormField
        control={form.control}
        name="password"
@@ -60,9 +73,8 @@ const LoginForm: React.FC = () => {
         </FormItem>
        )}
       />
-
-      <Button type="submit" className="w-full bg-primary">
-       Login
+      <Button type="submit" className="w-full bg-primary" disabled={isPending}>
+       {isPending ? "Logging in..." : "Login"}
       </Button>
      </form>
     </Form>

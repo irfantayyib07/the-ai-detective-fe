@@ -13,8 +13,6 @@ import toast from "react-hot-toast";
 import { Loader2, User, FileText, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { marked } from "marked";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 
 const renderer = new marked.Renderer();
 
@@ -47,7 +45,6 @@ type Message = {
 function ChatForm() {
  const fileInputRef = useRef<HTMLInputElement>(null);
  const chatContainerRef = useRef<HTMLDivElement>(null);
- const pdfContentRef = useRef<HTMLDivElement>(null);
  const [fileName, setFileName] = useState<string>("No file chosen");
  const [uploaded, setUploaded] = useState<boolean>(false);
  const [sourceId, setSourceId] = useState<string>("");
@@ -429,7 +426,7 @@ This approach will help confirm the authenticity of the document while maintaini
         >
          {isAnalyzingDocument || isSendingMessage ? (
           <>
-           <Loader2 size={16} className="mr-2 animate-spin" />
+           <Loader2 size={16} className="animate-spin" />
            Sending...
           </>
          ) : (

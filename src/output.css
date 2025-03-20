@@ -789,6 +789,10 @@ body {
   justify-content: space-between;
 }
 
+.gap-1 {
+  gap: 0.25rem;
+}
+
 .gap-2 {
   gap: 0.5rem;
 }
@@ -1021,6 +1025,11 @@ body {
   line-height: 1.25rem;
 }
 
+.text-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
 .font-medium {
   font-weight: 500;
 }
@@ -1125,13 +1134,13 @@ body {
   height: 100%;
 }
 
-.gpt-response-container > ol {
+#gpt-response-container > ol {
   list-style-type: decimal;
   padding-left: 1rem;
   margin-block: 1rem;
 }
 
-.gpt-response-container > ul {
+#gpt-response-container > ul {
   list-style-type: disc;
   padding-left: 1rem;
   margin-block: 1rem;
@@ -1184,6 +1193,10 @@ body {
 
 .hover\:text-accent-foreground:hover {
   color: hsl(var(--accent-foreground));
+}
+
+.hover\:text-primary\/80:hover {
+  color: hsl(var(--primary) / 0.8);
 }
 
 .hover\:underline:hover {

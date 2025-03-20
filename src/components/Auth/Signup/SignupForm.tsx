@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useSignup } from "@/services/auth-services";
+import toast from "react-hot-toast";
 
 const signupSchema = z
  .object({
@@ -23,6 +25,8 @@ const signupSchema = z
 type SignupFormData = z.infer<typeof signupSchema>;
 
 const SignupForm: React.FC = () => {
+ const navigate = useNavigate();
+
  const form = useForm<SignupFormData>({
   resolver: zodResolver(signupSchema),
   defaultValues: {
@@ -33,8 +37,20 @@ const SignupForm: React.FC = () => {
   },
  });
 
+ const { mutate: signupMutation, isPending } = useSignup(
+  () => {
+   toast.success("Account created successfully!");
+   navigate("/chat");
+  },
+
+  () => {
+   toast.error("An error occurred during signup.");
+  },
+ );
+
  const onSubmit = (data: SignupFormData) => {
-  console.log("Form submitted:", data);
+  const { confirmPassword, ...signupData } = data;
+  signupMutation(signupData);
  };
 
  return (
@@ -94,8 +110,8 @@ const SignupForm: React.FC = () => {
         </FormItem>
        )}
       />
-      <Button type="submit" className="w-full bg-primary">
-       Sign Up
+      <Button type="submit" className="w-full bg-primary" disabled={isPending}>
+       {isPending ? "Signing up..." : "Sign Up"}
       </Button>
      </form>
     </Form>
