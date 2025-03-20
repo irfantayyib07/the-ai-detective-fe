@@ -1,4 +1,4 @@
-import { sessionUser } from "./user-types";
+import { SessionUser } from "./user-types";
 
 export interface SignupPayload {
  email: string;
@@ -10,7 +10,7 @@ export interface SignupResponse {
  success: boolean;
  data: {
   token: string;
-  sessionUser: sessionUser;
+  sessionUser: SessionUser;
  };
  message: string;
 }
@@ -25,7 +25,7 @@ export interface LoginResponse {
  success: boolean;
  data: {
   token: string;
-  sessionUser: sessionUser;
+  sessionUser: SessionUser;
  };
  message: string;
 }

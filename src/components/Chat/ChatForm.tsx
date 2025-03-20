@@ -10,7 +10,12 @@ import { Label } from "../ui/label";
 import { useAnalyzeDocument, useSendMessage, useUploadDocument } from "@/services/chat-services";
 import { UploadDocumentPayload } from "@/types/chat-types";
 import toast from "react-hot-toast";
-import { Loader2, User, FileText, Download } from "lucide-react";
+import {
+ Loader2,
+ User,
+ FileText,
+ // Download
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { marked } from "marked";
 
@@ -50,7 +55,7 @@ function ChatForm() {
  const [sourceId, setSourceId] = useState<string>("");
  const [sessionId, setSessionId] = useState<string>("");
  const [messages, setMessages] = useState<Message[]>([]);
- const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
+ // const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
 
  const markdownToHtml = (markdown: string): string => {
   try {
@@ -323,7 +328,7 @@ function ChatForm() {
    <Card className="px-[20px] pt-[20px] pb-6">
     <div className="flex justify-between items-center mb-5">
      <Label className="block text-primary font-semibold tracking-[-2%]">Conversation</Label>
-     {messages.length > 0 && !messages[messages.length - 1].pending && (
+     {/* {messages.length > 0 && !messages[messages.length - 1].pending && (
       <Button
        // onClick={generatePDF}
        disabled={isGeneratingPdf}
@@ -341,7 +346,7 @@ function ChatForm() {
         </>
        )}
       </Button>
-     )}
+     )} */}
     </div>
     <CardContent
      ref={chatContainerRef}
