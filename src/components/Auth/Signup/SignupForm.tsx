@@ -9,6 +9,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Link, useNavigate } from "react-router-dom";
 import { useSignup } from "@/services/auth-services";
 import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { setToken, setSessionUser } from "@/redux/slices/authSlice";
 
 const signupSchema = z
  .object({
@@ -26,6 +28,7 @@ type SignupFormData = z.infer<typeof signupSchema>;
 
 const SignupForm: React.FC = () => {
  const navigate = useNavigate();
+ const dispatch = useDispatch();
 
  const form = useForm<SignupFormData>({
   resolver: zodResolver(signupSchema),
@@ -38,11 +41,12 @@ const SignupForm: React.FC = () => {
  });
 
  const { mutate: signupMutation, isPending } = useSignup(
-  () => {
+  response => {
    toast.success("Account created successfully!");
+   dispatch(setToken(response.data.token));
+   dispatch(setSessionUser(response.data.sessionUser));
    navigate("/chat");
   },
-
   () => {
    toast.error("An error occurred during signup.");
   },

@@ -1,7 +1,18 @@
+import { sessionUser } from "./user-types";
+
 export interface SignupPayload {
  email: string;
  username: string;
  password: string;
+}
+
+export interface SignupResponse {
+ success: boolean;
+ data: {
+  token: string;
+  sessionUser: sessionUser;
+ };
+ message: string;
 }
 
 export interface LoginPayload {
@@ -10,27 +21,13 @@ export interface LoginPayload {
  password: string;
 }
 
-export interface SignupResponse {
- user: {
-  id: string;
-  email: string;
-  username: string;
- };
- tokens: {
-  accessToken: string;
- };
-}
-
 export interface LoginResponse {
- user: {
-  id: string;
-  email: string;
-  username: string;
+ success: boolean;
+ data: {
+  token: string;
+  sessionUser: sessionUser;
  };
- tokens: {
-  accessToken: string;
-  refreshToken: string;
- };
+ message: string;
 }
 
 export interface LogoutResponse {
@@ -39,6 +36,7 @@ export interface LogoutResponse {
 }
 
 export interface RefreshTokenResponse {
- accessToken: string;
- refreshToken: string;
+ success: boolean;
+ data: string;
+ message: string;
 }

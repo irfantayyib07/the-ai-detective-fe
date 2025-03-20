@@ -8,6 +8,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Link, useNavigate } from "react-router-dom";
 import { useLogin } from "@/services/auth-services";
 import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { setSessionUser, setToken } from "@/redux/slices/authSlice";
 
 const loginSchema = z.object({
  username: z.string().min(1, "Username is required"),
@@ -18,6 +20,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 const LoginForm = () => {
  const navigate = useNavigate();
+ const dispatch = useDispatch();
 
  const form = useForm<LoginFormData>({
   resolver: zodResolver(loginSchema),
@@ -28,8 +31,11 @@ const LoginForm = () => {
  });
 
  const { mutate: loginMutation, isPending } = useLogin(
-  () => {
+  response => {
    toast.success("Login successful!");
+   console.log(response);
+   dispatch(setToken(response.data.token));
+   dispatch(setSessionUser(response.data.sessionUser));
    navigate("/chat");
   },
 

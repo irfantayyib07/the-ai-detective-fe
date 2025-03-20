@@ -13,9 +13,10 @@ function MainLayout() {
    >
     <Outlet />
     <img
+     draggable={false}
      src="/logo-icon.png"
      alt="AI Detective"
-     className="w-1/2 max-w-[526px] absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -z-[1]"
+     className="w-1/2 max-w-[526px] absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -z-[1] select-none"
     />
    </main>
   </>

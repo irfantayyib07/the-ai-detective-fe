@@ -4,6 +4,7 @@ import Chat from "./pages/Chat";
 import Login from "./pages/Auth/Login";
 import Signup from "./pages/Auth/Signup";
 import { Toaster } from "react-hot-toast";
+import AuthGuard from "./lib/AuthGuard";
 
 function App() {
  return (
@@ -13,7 +14,9 @@ function App() {
      <Route path="" element={<Navigate to="/chat" />} />
      <Route path="/create-account" element={<Signup />} />
      <Route path="/login" element={<Login />} />
-     <Route path="/chat" element={<Chat />} />
+     <Route path="" element={<AuthGuard />}>
+      <Route path="/chat" element={<Chat />} />
+     </Route>
     </Route>
    </Routes>
    <Toaster />
