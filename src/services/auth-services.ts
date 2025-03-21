@@ -60,9 +60,8 @@ export const useLogout = (onSuccessFn?: SuccessLogoutFn, onErrorFn?: ErrorFn) =>
 };
 
 export const useRefreshAccessToken = (onSuccessFn?: SuccessRefreshTokenFn, onErrorFn?: ErrorFn) => {
- const token = useSelector((state: RootState) => state.auth.token);
  return useMutation<RefreshTokenResponse, ApiError, void>({
-  mutationFn: () => refreshAccessToken(token),
+  mutationFn: () => refreshAccessToken(),
   onSuccess: data => {
    onSuccessFn?.(data);
   },
