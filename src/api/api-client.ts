@@ -15,6 +15,7 @@ export const apiClient = axios.create({
   import.meta.env.VITE_NODE_ENV === "development"
    ? "http://localhost:3500"
    : "https://the-ai-detective-be.vercel.app",
+ withCredentials: true,
 });
 
 export const apiClientWithAuth = (token: string) => {
@@ -24,6 +25,7 @@ export const apiClientWithAuth = (token: string) => {
    import.meta.env.VITE_NODE_ENV === "development"
     ? "http://localhost:3500"
     : "https://the-ai-detective-be.vercel.app",
+  withCredentials: true,
  });
 
  client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
