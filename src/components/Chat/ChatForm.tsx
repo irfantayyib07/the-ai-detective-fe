@@ -332,7 +332,7 @@ function ChatForm() {
           value={value}
           onChange={onChange}
           placeholder="Ask a question about the document..."
-          className="bg-white border-none text-primary text-sm sm:text-base focus-visible:ring-0 focus-visible:ring-transparent"
+          className="bg-white border-none text-primary text-sm sm:text-base md:text-base focus-visible:ring-0 focus-visible:ring-transparent"
           disabled={isAnalyzingDocument || isSendingMessage}
          />
         </div>

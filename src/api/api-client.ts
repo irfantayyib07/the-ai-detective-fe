@@ -11,13 +11,19 @@ let failedRequests: {
 }[] = [];
 
 export const apiClient = axios.create({
- baseURL: "http://localhost:3500",
+ baseURL:
+  import.meta.env.VITE_NODE_ENV === "development"
+   ? "http://localhost:3500"
+   : "https://the-ai-detective-be.vercel.app",
 });
 
 export const apiClientWithAuth = (token: string) => {
  console.log(token);
  const client = axios.create({
-  baseURL: "http://localhost:3500",
+  baseURL:
+   import.meta.env.VITE_NODE_ENV === "development"
+    ? "http://localhost:3500"
+    : "https://the-ai-detective-be.vercel.app",
  });
 
  client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
