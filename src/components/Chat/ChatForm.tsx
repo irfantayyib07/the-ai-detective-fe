@@ -10,12 +10,7 @@ import { Label } from "../ui/label";
 import { useAnalyzeDocument, useSendMessage, useUploadDocument } from "@/services/chat-services";
 import { UploadDocumentPayload } from "@/types/chat-types";
 import toast from "react-hot-toast";
-import {
- Loader2,
- User,
- FileText,
- // Download
-} from "lucide-react";
+import { Loader2, User, FileText, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { marked } from "marked";
 
@@ -53,7 +48,7 @@ function ChatForm() {
  const [sourceId, setSourceId] = useState<string>("");
  const [sessionId, setSessionId] = useState<string>("");
  const [messages, setMessages] = useState<Message[]>([]);
- // const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
+ const [downloadingMessageId, setDownloadingMessageId] = useState<string | null>(null);
 
  const markdownToHtml = (markdown: string): string => {
   try {
@@ -106,10 +101,9 @@ function ChatForm() {
     }),
    );
 
-   console.log(data.aiResponse),
-    setTimeout(() => {
-     scrollToBottom();
-    }, 100);
+   setTimeout(() => {
+    scrollToBottom();
+   }, 100);
   },
   () => {
    setMessages(prev => prev.filter(msg => !msg.pending));
@@ -135,8 +129,6 @@ function ChatForm() {
     }),
    );
 
-   console.log(data.aiResponse);
-
    setTimeout(() => {
     scrollToBottom();
    }, 100);
@@ -149,6 +141,37 @@ function ChatForm() {
  const scrollToBottom = () => {
   if (chatContainerRef.current) {
    chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+  }
+ };
+
+ const handleDownloadResponse = (message: Message) => {
+  if (message.isUser || message.pending) return;
+
+  setDownloadingMessageId(message.id);
+
+  try {
+   const tempDiv = document.createElement("div");
+   tempDiv.innerHTML = message.aiResponseHtml || message.aiResponse;
+   const textContent = tempDiv.textContent || tempDiv.innerText || message.aiResponse;
+
+   const blob = new Blob([textContent], { type: "text/plain" });
+   const url = URL.createObjectURL(blob);
+   const a = document.createElement("a");
+   a.href = url;
+   a.download = `ai-response-${message.id}.txt`;
+   document.body.appendChild(a);
+   a.click();
+
+   document.body.removeChild(a);
+   URL.revokeObjectURL(url);
+
+   setTimeout(() => {
+    setDownloadingMessageId(null);
+   }, 500);
+  } catch (error) {
+   console.error("Error downloading response:", error);
+   toast.error("Failed to download response");
+   setDownloadingMessageId(null);
   }
  };
 
@@ -258,29 +281,10 @@ function ChatForm() {
    <Card className="px-[20px] pt-[20px] pb-6">
     <div className="flex justify-between items-center mb-5">
      <Label className="block text-primary font-semibold tracking-[-2%]">Conversation</Label>
-     {/* {messages.length > 0 && !messages[messages.length - 1].pending && (
-      <Button
-       // onClick={generatePDF}
-       disabled={isGeneratingPdf}
-       size="sm"
-       variant="outline"
-       className="flex items-center gap-1 text-xs"
-      >
-       {isGeneratingPdf ? (
-        <>
-         <Loader2 size={14} className="animate-spin" /> Generating...
-        </>
-       ) : (
-        <>
-         <Download size={14} /> Download PDF
-        </>
-       )}
-      </Button>
-     )} */}
     </div>
     <CardContent
      ref={chatContainerRef}
-     className="flex flex-col space-y-4 max-h-[400px] overflow-y-auto mb-4 p-2 scroll-smooth"
+     className="flex flex-col space-y-4 max-h-[400px] overflow-y-auto mb-4 p-2 pr-7 scroll-smooth"
     >
      {messages.length === 0 ? (
       <div className="flex flex-col items-center justify-center h-32 text-muted-foreground text-sm">
@@ -292,7 +296,7 @@ function ChatForm() {
        <div key={message.id} className={cn("flex w-full", message.isUser ? "justify-end" : "justify-start")}>
         <div
          className={cn(
-          "flex items-start gap-2 max-w-[80%] rounded-lg p-3 pr-7",
+          "flex items-start gap-2 max-w-[80%] rounded-lg p-3 relative",
           message.isUser
            ? "bg-primary text-white rounded-br-none"
            : "bg-secondary text-primary rounded-bl-none",
@@ -319,10 +323,27 @@ function ChatForm() {
             dangerouslySetInnerHTML={{
              __html: message.aiResponseHtml || message.aiResponse,
             }}
+            className="gpt-response-container"
             id={`gpt-response-container-${message.id}`}
            />
           )}
          </div>
+         {!message.isUser && !message.pending && (
+          <Button
+           variant="ghost"
+           size="icon"
+           className="absolute top-1/2 right-0 -translate-y-1/2 translate-x-[125%] h-6 w-6 p-1 text-muted-foreground hover:text-primary hover:bg-secondary-light"
+           onClick={() => handleDownloadResponse(message)}
+           title="Download response"
+           disabled={downloadingMessageId === message.id}
+          >
+           {downloadingMessageId === message.id ? (
+            <Loader2 size={14} className="animate-spin" />
+           ) : (
+            <Download size={14} />
+           )}
+          </Button>
+         )}
         </div>
        </div>
       ))
