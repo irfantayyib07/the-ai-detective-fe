@@ -1,44 +1,23 @@
 import { ChangeEvent, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Label } from "../ui/label";
 import { useAnalyzeDocument, useSendMessage, useUploadDocument } from "@/services/chat-services";
-import { UploadDocumentPayload } from "@/types/chat-types";
+import { Message, UploadDocumentPayload } from "@/types/chat-types";
 import toast from "react-hot-toast";
-import { Loader2, User, FileText, Download } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { marked } from "marked";
-
-const renderer = new marked.Renderer();
-
-renderer.heading = ({ text, depth }) => {
- return `<br/><h${depth}><strong>${text}</strong></h${depth}>`;
-};
-
-marked.setOptions({
- renderer: renderer,
- breaks: false,
- gfm: false,
-});
+import { Loader2, User, FileText, Printer } from "lucide-react";
+import { cn, markdownToHtml } from "@/lib/utils";
+import { handlePrintResponse } from "@/lib/handlePrintAnalysis";
 
 const formSchema = z.object({
  question: z.string().min(1, "Please enter a question"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
-
-type Message = {
- id: string;
- aiResponse: string;
- aiResponseHtml?: string;
- isUser: boolean;
- pending?: boolean;
-};
 
 function ChatForm() {
  const fileInputRef = useRef<HTMLInputElement>(null);
@@ -50,14 +29,19 @@ function ChatForm() {
  const [messages, setMessages] = useState<Message[]>([]);
  const [downloadingMessageId, setDownloadingMessageId] = useState<string | null>(null);
 
- const markdownToHtml = (markdown: string): string => {
-  try {
-   return marked.parse(markdown, { async: false }) as string;
-  } catch (error) {
-   console.error("Error parsing markdown:", error);
-   return markdown;
-  }
- };
+ const promptSuggestions = [
+  "Can you analyze this text for AI-generated content?",
+  "What are the chances this was written by AI?",
+  "Is this student submission likely AI-generated?",
+  "Provide a detailed analysis of this text for AI content.",
+ ];
+
+ const { control, handleSubmit, setValue, reset } = useForm<FormValues>({
+  resolver: zodResolver(formSchema),
+  defaultValues: {
+   question: "",
+  },
+ });
 
  const { mutate: uploadDocument, isPending: isUploadingDocument } = useUploadDocument(
   data => {
@@ -82,6 +66,7 @@ function ChatForm() {
 
  const { mutate: analyzeDocument, isPending: isAnalyzingDocument } = useAnalyzeDocument(
   data => {
+   reset();
    setSessionId(data.conversationId);
 
    const aiResponseHtml = markdownToHtml(data.aiResponse);
@@ -112,6 +97,7 @@ function ChatForm() {
 
  const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessage(
   data => {
+   reset();
    const aiResponseHtml = markdownToHtml(data.aiResponse);
 
    setMessages(prev =>
@@ -143,44 +129,6 @@ function ChatForm() {
    chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
   }
  };
-
- const handleDownloadResponse = (message: Message) => {
-  if (message.isUser || message.pending) return;
-
-  setDownloadingMessageId(message.id);
-
-  try {
-   const tempDiv = document.createElement("div");
-   tempDiv.innerHTML = message.aiResponseHtml || message.aiResponse;
-   const textContent = tempDiv.textContent || tempDiv.innerText || message.aiResponse;
-
-   const blob = new Blob([textContent], { type: "text/plain" });
-   const url = URL.createObjectURL(blob);
-   const a = document.createElement("a");
-   a.href = url;
-   a.download = `ai-response-${message.id}.txt`;
-   document.body.appendChild(a);
-   a.click();
-
-   document.body.removeChild(a);
-   URL.revokeObjectURL(url);
-
-   setTimeout(() => {
-    setDownloadingMessageId(null);
-   }, 500);
-  } catch (error) {
-   console.error("Error downloading response:", error);
-   toast.error("Failed to download response");
-   setDownloadingMessageId(null);
-  }
- };
-
- const form = useForm<FormValues>({
-  resolver: zodResolver(formSchema),
-  defaultValues: {
-   question: "",
-  },
- });
 
  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
   const file = e.target.files?.[0];
@@ -222,8 +170,6 @@ function ChatForm() {
 
   setMessages(prev => [...prev, userMessage, pendingMessage]);
 
-  form.reset();
-
   setTimeout(() => {
    scrollToBottom();
   }, 50);
@@ -242,6 +188,11 @@ function ChatForm() {
     fileName,
    });
   }
+ };
+
+ const handlePromptSelect = (prompt: string) => {
+  setValue("question", prompt);
+  handleSubmit(onSubmit)();
  };
 
  return (
@@ -272,6 +223,7 @@ function ChatForm() {
       disabled={isUploadingDocument || uploaded || !fileInputRef.current?.files?.length}
       className="bg-primary text-white w-full xs:w-auto"
      >
+      {isUploadingDocument && <Loader2 size={16} className="animate-spin" />}
       {isUploadingDocument ? "Uploading..." : "Upload"}
      </Button>
     </CardContent>
@@ -333,14 +285,14 @@ function ChatForm() {
            variant="ghost"
            size="icon"
            className="absolute top-1/2 right-0 -translate-y-1/2 translate-x-[125%] h-6 w-6 p-1 text-muted-foreground hover:text-primary hover:bg-secondary-light"
-           onClick={() => handleDownloadResponse(message)}
-           title="Download response"
+           onClick={() => handlePrintResponse(message, setDownloadingMessageId, fileName)}
+           title="Print response"
            disabled={downloadingMessageId === message.id}
           >
            {downloadingMessageId === message.id ? (
             <Loader2 size={14} className="animate-spin" />
            ) : (
-            <Download size={14} />
+            <Printer size={14} />
            )}
           </Button>
          )}
@@ -349,46 +301,53 @@ function ChatForm() {
       ))
      )}
     </CardContent>
+
+    {uploaded && messages.length <= 1 && (
+     <div className="px-2 mb-4">
+      <p className="text-sm text-muted-foreground mb-2">Suggested questions:</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+       {promptSuggestions.map((prompt, index) => (
+        <button
+         key={index}
+         onClick={() => handlePromptSelect(prompt)}
+         className="text-left p-3 text-sm bg-secondary/50 hover:bg-secondary text-primary rounded-lg border border-muted transition-colors duration-200"
+        >
+         {prompt}
+        </button>
+       ))}
+      </div>
+     </div>
+    )}
    </Card>
 
-   {/* Question Form Section */}
    <Card className="px-[20px] pt-[20px] pb-10">
     <CardContent className="p-0">
-     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-       <FormField
-        control={form.control}
-        name="question"
-        render={({ field }) => (
-         <FormItem>
-          <FormControl>
-           <Textarea
-            placeholder="Ask a question about the document..."
-            className="min-h-24 bg-white border-none text-primary text-sm sm:text-base"
-            {...field}
-           />
-          </FormControl>
-         </FormItem>
-        )}
-       />
-       <div className="flex justify-end">
-        <Button
-         type="submit"
-         className="bg-primary text-white"
-         disabled={!uploaded || isAnalyzingDocument || isSendingMessage}
-        >
-         {isAnalyzingDocument || isSendingMessage ? (
-          <>
-           <Loader2 size={16} className="animate-spin" />
-           Sending...
-          </>
-         ) : (
-          "Send"
-         )}
-        </Button>
-       </div>
-      </form>
-     </Form>
+     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <Controller
+       control={control}
+       name="question"
+       render={({ field: { value, onChange } }) => (
+        <div>
+         <Input
+          value={value}
+          onChange={onChange}
+          placeholder="Ask a question about the document..."
+          className="bg-white border-none text-primary text-sm sm:text-base focus-visible:ring-0 focus-visible:ring-transparent"
+          disabled={isAnalyzingDocument || isSendingMessage}
+         />
+        </div>
+       )}
+      />
+      <div className="flex justify-end">
+       <Button
+        type="submit"
+        className="bg-primary text-white"
+        disabled={!uploaded || isAnalyzingDocument || isSendingMessage}
+       >
+        Send
+       </Button>
+      </div>
+     </form>
     </CardContent>
    </Card>
   </section>

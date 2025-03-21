@@ -26,7 +26,7 @@ function Header() {
  return (
   <header className="h-[55px] bg-white w-full px-5 py-[15px] flex justify-between items-center">
    <Link to="/chat">
-    <img src="/logo.png" alt="The AI Detective" className="h-[25px]" />
+    <img src="/logo.png" alt="The Ai Detective" className="h-[25px]" />
    </Link>
 
    {token && (

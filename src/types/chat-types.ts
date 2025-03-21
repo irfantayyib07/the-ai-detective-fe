@@ -1,3 +1,11 @@
+export type Message = {
+ id: string;
+ aiResponse: string;
+ aiResponseHtml?: string;
+ isUser: boolean;
+ pending?: boolean;
+};
+
 export type UploadDocumentPayload = { file: File };
 
 export type UploadDocumentResponse = {
