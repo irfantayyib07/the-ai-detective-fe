@@ -16,7 +16,7 @@ function Header() {
  const { mutate: logoutMutation, isPending } = useLogout(() => {
   dispatch(clearAuth());
   toast.success("Logged out successfully");
-  navigate("/login");
+  navigate("/login", { replace: true });
  });
 
  const handleLogout = () => {
