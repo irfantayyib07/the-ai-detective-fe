@@ -4,7 +4,7 @@ function Chat() {
  return (
   <>
    <h1 className="text-center sm:text-left text-2xl sm:text-[30px] tracking-[-2%] font-semibold text-primary mb-6">
-    Ai Detective System Two
+    The Ai Detective
    </h1>
    <ChatForm />
   </>
