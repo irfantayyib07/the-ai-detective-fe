@@ -30,19 +30,13 @@ const LoginForm = () => {
   },
  });
 
- const { mutate: loginMutation, isPending } = useLogin(
-  response => {
-   toast.success("Login successful!");
-   console.log(response);
-   dispatch(setToken(response.data.token));
-   dispatch(setSessionUser(response.data.sessionUser));
-   navigate("/chat");
-  },
-
-  () => {
-   toast.error("Login failed");
-  },
- );
+ const { mutate: loginMutation, isPending } = useLogin(response => {
+  toast.success("Login successful!");
+  console.log(response);
+  dispatch(setToken(response.data.token));
+  dispatch(setSessionUser(response.data.sessionUser));
+  navigate("/chat");
+ });
 
  const onSubmit = (data: LoginFormData) => {
   loginMutation(data);

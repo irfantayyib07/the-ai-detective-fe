@@ -15,8 +15,7 @@ export type AnalyzeDocumentPayload = {
 
 export type AnalyzeDocumentResponse = {
  success: boolean;
- summary: string;
- detailedAnalysis: string;
+ aiResponse: string;
  conversationId: string;
  sourceId: string;
 };
@@ -30,6 +29,5 @@ export type SendMessagePayload = {
 
 export type SendMessageResponse = {
  success: boolean;
- summary: string;
- detailedResponse: string;
+ aiResponse: string;
 };

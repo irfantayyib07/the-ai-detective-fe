@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -39,10 +39,8 @@ type FormValues = z.infer<typeof formSchema>;
 
 type Message = {
  id: string;
- summary?: string;
- summaryHtml?: string;
- content: string;
- contentHtml?: string;
+ aiResponse: string;
+ aiResponseHtml?: string;
  isUser: boolean;
  pending?: boolean;
 };
@@ -66,46 +64,6 @@ function ChatForm() {
   }
  };
 
- //  useEffect(() => {
- //   const message: Message = {
- //    id: `ai-${Date.now()}`,
- //    summary: "**Likelihood of AI Usage: 2 (Unlikely)**",
- //    content: `### Analysis:
-
- // Upon reviewing the content of the uploaded document titled *"Shopify.docx"*, the following observations were made:
-
- // #### Indicators of AI Authorship:
- // 1. **Structured Organisation**: The document is well-organised, with clear headings and subheadings such as "Understanding Shopify," "Shopify Development Tools and Technologies," and "Shopify API." This level of structure is characteristic of both human and AI-generated content.
- // 2. **Neutral Tone and Formality**: The tone is formal and neutral, which is typical of professional or technical writing. However, this does not strongly indicate AI authorship as it aligns with the expected style for such a topic.
- // 3. **Absence of Personalisation**: The text lacks personal anecdotes, subjective opinions, or emotional depth, which are often absent in AI-generated content. However, this is also appropriate for the technical nature of the document.
-
- // #### Indicators of Human Authorship:
- // 1. **Technical Accuracy and Contextual Relevance**: The content demonstrates a clear understanding of Shopify development, including specific tools (e.g., Shopify CLI, Liquid, APIs) and technologies (e.g., Node.js, Python, Ruby on Rails). This level of detail suggests domain expertise, which is more indicative of human authorship.
- // 2. **Natural Language Flow**: The phrasing and sentence structures appear natural and free from the repetitive patterns or unnatural idioms often found in AI-generated text.
- // 3. **No Overuse of Passive Voice**: The document uses active voice predominantly, which is a common trait of human writing.
- // 4. **No Excessive Formality or Advanced Vocabulary**: The vocabulary is appropriate for the subject matter and does not exhibit the excessive formality or overly complex language sometimes seen in AI-generated content.
-
- // #### Ambiguities:
- // - The document's technical nature and lack of personalisation could be misconstrued as AI-generated. However, these traits are consistent with the expected style for a professional guide on Shopify development.
-
- // ---
-
- // ### Recommendation:
-
- // Based on the analysis, the likelihood of AI involvement in the creation of this document is **Unlikely (2)**. The content demonstrates technical expertise, natural language flow, and appropriate tone, all of which align with human authorship.
-
- // However, to ensure a thorough evaluation:
- // 1. **Human Review**: It is recommended that an educator or subject matter expert reviews the document for any stylistic or contextual inconsistencies that may not be apparent through automated analysis.
- // 2. **Comparison with Student's Previous Work**: If applicable, compare the document's style and complexity with the student's prior submissions to identify any significant deviations.
-
- // This approach will help confirm the authenticity of the document while maintaining fairness and academic integrity.`,
- //    isUser: false,
- //   };
- //   message.contentHtml = markdownToHtml(message.content);
- //   message.summaryHtml = markdownToHtml(message?.summary || "");
- //   setMessages([message]);
- //  }, []);
-
  const { mutate: uploadDocument, isPending: isUploadingDocument } = useUploadDocument(
   data => {
    toast.success(data.message);
@@ -115,41 +73,31 @@ function ChatForm() {
 
    const systemMessage: Message = {
     id: `system-${Date.now()}`,
-    summary: "",
-    summaryHtml: "",
-    content: `Document "${fileName}" uploaded successfully.`,
-    contentHtml: `Document "${fileName}" uploaded successfully.`,
+    aiResponse: `Document "${fileName}" uploaded successfully.`,
+    aiResponseHtml: `Document "${fileName}" uploaded successfully.`,
     isUser: false,
    };
 
    setMessages(prev => [...prev, systemMessage]);
   },
-  err => {
-   toast.error(`Upload failed: ${err}`);
+  () => {
    setUploaded(false);
   },
  );
 
- const {
-  mutate: analyzeDocument,
-  isPending: isAnalyzingDocument,
-  error: analyzeDocumentError,
- } = useAnalyzeDocument(
+ const { mutate: analyzeDocument, isPending: isAnalyzingDocument } = useAnalyzeDocument(
   data => {
    setSessionId(data.conversationId);
 
-   const detailedAnalysisHtml = markdownToHtml(data.detailedAnalysis);
-   const summaryHtml = data.summary ? markdownToHtml(data.summary) : "";
+   const aiResponseHtml = markdownToHtml(data.aiResponse);
 
    setMessages(prev =>
     prev.map(msg => {
      if (msg.pending) {
       const aiMessage: Message = {
        id: `ai-${Date.now()}`,
-       summary: data.summary || "",
-       summaryHtml: summaryHtml,
-       content: data.detailedAnalysis,
-       contentHtml: detailedAnalysisHtml,
+       aiResponse: data.aiResponse,
+       aiResponseHtml,
        isUser: false,
       };
       return aiMessage;
@@ -158,35 +106,27 @@ function ChatForm() {
     }),
    );
 
-   console.log(data.summary, data.detailedAnalysis),
+   console.log(data.aiResponse),
     setTimeout(() => {
      scrollToBottom();
     }, 100);
   },
-  err => {
-   toast.error(`Analysis failed: ${err}`);
+  () => {
    setMessages(prev => prev.filter(msg => !msg.pending));
   },
  );
 
- const {
-  mutate: sendMessage,
-  isPending: isSendingMessage,
-  error: sendMessageError,
- } = useSendMessage(
+ const { mutate: sendMessage, isPending: isSendingMessage } = useSendMessage(
   data => {
-   const detailedResponseHtml = markdownToHtml(data.detailedResponse);
-   const summaryHtml = data.summary ? markdownToHtml(data.summary) : "";
+   const aiResponseHtml = markdownToHtml(data.aiResponse);
 
    setMessages(prev =>
     prev.map(msg => {
      if (msg.pending) {
       const aiMessage: Message = {
        id: `ai-${Date.now()}`,
-       summary: data.summary || "",
-       summaryHtml: summaryHtml,
-       content: data.detailedResponse,
-       contentHtml: detailedResponseHtml,
+       aiResponse: data.aiResponse,
+       aiResponseHtml,
        isUser: false,
       };
       return aiMessage;
@@ -195,14 +135,13 @@ function ChatForm() {
     }),
    );
 
-   console.log(data.summary, data.detailedResponse);
+   console.log(data.aiResponse);
 
    setTimeout(() => {
     scrollToBottom();
    }, 100);
   },
-  err => {
-   toast.error(`Failed to get response: ${err}`);
+  () => {
    setMessages(prev => prev.filter(msg => !msg.pending));
   },
  );
@@ -245,15 +184,15 @@ function ChatForm() {
 
   const userMessage: Message = {
    id: `user-${Date.now()}`,
-   content: data.question,
-   contentHtml: data.question,
+   aiResponse: data.question,
+   aiResponseHtml: data.question,
    isUser: true,
   };
 
   const pendingMessage: Message = {
    id: `pending-${Date.now()}`,
-   content: "",
-   contentHtml: "",
+   aiResponse: "",
+   aiResponseHtml: "",
    isUser: false,
    pending: true,
   };
@@ -281,15 +220,6 @@ function ChatForm() {
    });
   }
  };
-
- useEffect(() => {
-  if (analyzeDocumentError) {
-   toast.error(`Analysis error: ${analyzeDocumentError.message}`);
-  }
-  if (sendMessageError) {
-   toast.error(`Message error: ${sendMessageError.message}`);
-  }
- }, [analyzeDocumentError, sendMessageError]);
 
  return (
   <section className="w-full max-w-[750px] mx-auto space-y-[25px]">
@@ -350,7 +280,7 @@ function ChatForm() {
     </div>
     <CardContent
      ref={chatContainerRef}
-     className="flex flex-col space-y-4 max-h-[400px] overflow-y-auto mb-4 p-2"
+     className="flex flex-col space-y-4 max-h-[400px] overflow-y-auto mb-4 p-2 scroll-smooth"
     >
      {messages.length === 0 ? (
       <div className="flex flex-col items-center justify-center h-32 text-muted-foreground text-sm">
@@ -362,7 +292,7 @@ function ChatForm() {
        <div key={message.id} className={cn("flex w-full", message.isUser ? "justify-end" : "justify-start")}>
         <div
          className={cn(
-          "flex items-start gap-2 max-w-[80%] rounded-lg p-3",
+          "flex items-start gap-2 max-w-[80%] rounded-lg p-3 pr-7",
           message.isUser
            ? "bg-primary text-white rounded-br-none"
            : "bg-secondary text-primary rounded-bl-none",
@@ -387,12 +317,9 @@ function ChatForm() {
           ) : (
            <div
             dangerouslySetInnerHTML={{
-             __html:
-              message.summaryHtml && message.contentHtml
-               ? `${message.summaryHtml}${message.contentHtml}`
-               : message.contentHtml || message.content,
+             __html: message.aiResponseHtml || message.aiResponse,
             }}
-            id="gpt-response-container"
+            id={`gpt-response-container-${message.id}`}
            />
           )}
          </div>

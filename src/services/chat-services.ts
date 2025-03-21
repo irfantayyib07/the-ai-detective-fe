@@ -24,6 +24,9 @@ import {
  useQueryClient,
  // UseQueryResult
 } from "@tanstack/react-query";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import toast from "react-hot-toast";
 // import { useQuery } from "@tanstack/react-query";
 
 export type ApiError = { message: string };
@@ -46,13 +49,15 @@ type SuccessSendMessageFn = (data: SendMessageResponse) => void;
 
 export const useUploadDocument = (onSuccessFn?: SuccessUploadDocumentFn, onErrorFn?: ErrorFnE) => {
  const queryClient = useQueryClient();
+ const token = useSelector((state: RootState) => state.auth.token);
  return useMutation<UploadDocumentResponse, ApiError, UploadDocumentPayload>({
-  mutationFn: payload => uploadDocument(payload),
+  mutationFn: payload => uploadDocument(payload, token),
   onSuccess: data => {
    queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
    onSuccessFn?.(data);
   },
   onError: error => {
+   toast.error(error.message || "Document upload failed");
    onErrorFn?.(error);
   },
  });
@@ -60,13 +65,15 @@ export const useUploadDocument = (onSuccessFn?: SuccessUploadDocumentFn, onError
 
 export const useAnalyzeDocument = (onSuccessFn?: SuccessAnalyzeDocumentFn, onErrorFn?: ErrorFnE) => {
  const queryClient = useQueryClient();
+ const token = useSelector((state: RootState) => state.auth.token);
  return useMutation<AnalyzeDocumentResponse, ApiError, AnalyzeDocumentPayload>({
-  mutationFn: payload => analyzeDocument(payload),
+  mutationFn: payload => analyzeDocument(payload, token),
   onSuccess: data => {
    queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
    onSuccessFn?.(data);
   },
   onError: error => {
+   toast.error(error.message || "File analysis failed");
    onErrorFn?.(error);
   },
  });
@@ -74,13 +81,15 @@ export const useAnalyzeDocument = (onSuccessFn?: SuccessAnalyzeDocumentFn, onErr
 
 export const useSendMessage = (onSuccessFn?: SuccessSendMessageFn, onErrorFn?: ErrorFnE) => {
  const queryClient = useQueryClient();
+ const token = useSelector((state: RootState) => state.auth.token);
  return useMutation<SendMessageResponse, ApiError, SendMessagePayload>({
-  mutationFn: payload => sendMessage(payload),
+  mutationFn: payload => sendMessage(payload, token),
   onSuccess: data => {
    queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
    onSuccessFn?.(data);
   },
   onError: error => {
+   toast.error(error.message || "Couldn't receive response");
    onErrorFn?.(error);
   },
  });
@@ -88,8 +97,9 @@ export const useSendMessage = (onSuccessFn?: SuccessSendMessageFn, onErrorFn?: E
 
 // export const useUpdateChat = (chatId: string, onSuccessFn?: SuccessEditChatFn, onErrorFn?: ErrorFnE) => {
 //  const queryClient = useQueryClient();
+//  const token = useSelector((state: RootState) => state.auth.token);
 //  return useMutation<UpdateChatResponse, ApiError, UpdateChatPayload>({
-//   mutationFn: payload => updateChat(chatId, payload),
+//   mutationFn: payload => updateChat(chatId, payload, token),
 //   onSuccess: data => {
 //    queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
 //    onSuccessFn?.(data);
@@ -102,8 +112,9 @@ export const useSendMessage = (onSuccessFn?: SuccessSendMessageFn, onErrorFn?: E
 
 // export const useDeleteChat = (onSuccessFn?: SuccessDeleteChatFn, onErrorFn?: ErrorFnE) => {
 //  const queryClient = useQueryClient();
+//  const token = useSelector((state: RootState) => state.auth.token);
 //  return useMutation<DeleteChatResponse, ApiError, string>({
-//   mutationFn: chatId => deleteChat(chatId),
+//   mutationFn: chatId => deleteChat(chatId, token),
 //   onSuccess: data => {
 //    queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
 //    onSuccessFn?.(data);

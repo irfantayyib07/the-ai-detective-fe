@@ -1,4 +1,5 @@
 import { signup, login, logout, refreshAccessToken } from "@/api/auth-api";
+import { RootState } from "@/redux/store";
 import {
  SignupPayload,
  SignupResponse,
@@ -8,6 +9,8 @@ import {
  RefreshTokenResponse,
 } from "@/types/auth-types";
 import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
 
 export type ApiError = { message: string };
 type ErrorFn = (error: ApiError) => void;
@@ -23,6 +26,7 @@ export const useSignup = (onSuccessFn?: SuccessSignupFn, onErrorFn?: ErrorFn) =>
    onSuccessFn?.(data);
   },
   onError: error => {
+   toast.error(error.message || "Signup failed");
    onErrorFn?.(error);
   },
  });
@@ -35,30 +39,35 @@ export const useLogin = (onSuccessFn?: SuccessLoginFn, onErrorFn?: ErrorFn) => {
    onSuccessFn?.(data);
   },
   onError: error => {
+   toast.error(error.message || "Login failed");
    onErrorFn?.(error);
   },
  });
 };
 
 export const useLogout = (onSuccessFn?: SuccessLogoutFn, onErrorFn?: ErrorFn) => {
+ const token = useSelector((state: RootState) => state.auth.token);
  return useMutation<LogoutResponse, ApiError, void>({
-  mutationFn: () => logout(),
+  mutationFn: () => logout(token),
   onSuccess: data => {
    onSuccessFn?.(data);
   },
   onError: error => {
+   toast.error(error.message || "Logout failed");
    onErrorFn?.(error);
   },
  });
 };
 
 export const useRefreshAccessToken = (onSuccessFn?: SuccessRefreshTokenFn, onErrorFn?: ErrorFn) => {
+ const token = useSelector((state: RootState) => state.auth.token);
  return useMutation<RefreshTokenResponse, ApiError, void>({
-  mutationFn: () => refreshAccessToken(),
+  mutationFn: () => refreshAccessToken(token),
   onSuccess: data => {
    onSuccessFn?.(data);
   },
   onError: error => {
+   toast.error(error.message || "Token refreshing failed");
    onErrorFn?.(error);
   },
  });

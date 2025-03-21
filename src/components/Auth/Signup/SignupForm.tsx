@@ -40,17 +40,12 @@ const SignupForm: React.FC = () => {
   },
  });
 
- const { mutate: signupMutation, isPending } = useSignup(
-  response => {
-   toast.success("Account created successfully!");
-   dispatch(setToken(response.data.token));
-   dispatch(setSessionUser(response.data.sessionUser));
-   navigate("/chat");
-  },
-  () => {
-   toast.error("An error occurred during signup.");
-  },
- );
+ const { mutate: signupMutation, isPending } = useSignup(response => {
+  toast.success("Account created successfully!");
+  dispatch(setToken(response.data.token));
+  dispatch(setSessionUser(response.data.sessionUser));
+  navigate("/chat");
+ });
 
  const onSubmit = (data: SignupFormData) => {
   const { confirmPassword, ...signupData } = data;

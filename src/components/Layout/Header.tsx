@@ -13,17 +13,11 @@ function Header() {
 
  const { token } = useSelector((state: RootState) => state.auth);
 
- const { mutate: logoutMutation, isPending } = useLogout(
-  () => {
-   dispatch(clearAuth());
-   toast.success("Logged out successfully");
-   navigate("/login");
-  },
-
-  () => {
-   toast.error("Logout failed");
-  },
- );
+ const { mutate: logoutMutation, isPending } = useLogout(() => {
+  dispatch(clearAuth());
+  toast.success("Logged out successfully");
+  navigate("/login");
+ });
 
  const handleLogout = () => {
   logoutMutation();
