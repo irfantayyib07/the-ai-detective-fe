@@ -14,12 +14,12 @@ function Header() {
  const { token } = useSelector((state: RootState) => state.auth);
 
  const { mutate: logoutMutation, isPending } = useLogout(() => {
-  dispatch(clearAuth());
   toast.success("Logged out successfully");
   navigate("/login", { replace: true });
  });
 
  const handleLogout = () => {
+  dispatch(clearAuth());
   logoutMutation();
  };
 
