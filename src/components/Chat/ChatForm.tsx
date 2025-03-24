@@ -12,6 +12,7 @@ import toast from "react-hot-toast";
 import { Loader2, User, FileText, Printer } from "lucide-react";
 import { cn, markdownToHtml } from "@/lib/utils";
 import { handlePrintResponse } from "@/lib/handlePrintAnalysis";
+import { useRecordDocument } from "@/services/document-services";
 
 const formSchema = z.object({
  question: z.string().min(1, "Please enter a question"),
@@ -24,6 +25,7 @@ function ChatForm() {
  const chatContainerRef = useRef<HTMLDivElement>(null);
  const [fileName, setFileName] = useState<string>("No file chosen");
  const [uploaded, setUploaded] = useState<boolean>(false);
+ const [isProcessing, setIsProcessing] = useState<boolean>(false);
  const [sourceId, setSourceId] = useState<string>("");
  const [sessionId, setSessionId] = useState<string>("");
  const [messages, setMessages] = useState<Message[]>([]);
@@ -43,12 +45,21 @@ function ChatForm() {
   },
  });
 
+ const { mutate: recordDocument, isPending: isRecordingDocument } = useRecordDocument(async () => {
+  await new Promise(res => {
+   setTimeout(res, 6000);
+  });
+  setIsProcessing(false);
+ });
+
  const { mutate: uploadDocument, isPending: isUploadingDocument } = useUploadDocument(
   data => {
    toast.success(data.message);
+   recordDocument({ sourceId: String(data.sourceId) });
    setSourceId(String(data.sourceId));
    setFileName(data.fileName);
    setUploaded(true);
+   setIsProcessing(true);
 
    const systemMessage: Message = {
     id: `system-${Date.now()}`,
@@ -220,11 +231,18 @@ function ChatForm() {
      </div>
      <Button
       onClick={handleUpload}
-      disabled={isUploadingDocument || uploaded || !fileInputRef.current?.files?.length}
+      disabled={
+       isUploadingDocument ||
+       isProcessing ||
+       isAnalyzingDocument ||
+       isSendingMessage ||
+       !fileInputRef.current?.files?.length ||
+       isRecordingDocument
+      }
       className="bg-primary text-white w-full xs:w-auto"
      >
-      {isUploadingDocument && <Loader2 size={16} className="animate-spin" />}
-      {isUploadingDocument ? "Uploading..." : "Upload"}
+      {(isUploadingDocument || isProcessing) && <Loader2 size={16} className="animate-spin" />}
+      {isProcessing ? "Processing..." : isUploadingDocument ? "Uploading..." : "Upload"}
      </Button>
     </CardContent>
    </Card>
@@ -302,7 +320,7 @@ function ChatForm() {
      )}
     </CardContent>
 
-    {uploaded && messages.length <= 1 && (
+    {uploaded && !isProcessing && messages.length <= 1 && (
      <div className="px-2 mb-4">
       <p className="text-sm text-muted-foreground mb-2">Suggested questions:</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -333,7 +351,7 @@ function ChatForm() {
           onChange={onChange}
           placeholder="Ask a question about the document..."
           className="bg-white border-none text-primary text-sm sm:text-base md:text-base focus-visible:ring-0 focus-visible:ring-transparent"
-          disabled={isAnalyzingDocument || isSendingMessage}
+          disabled={isProcessing || isAnalyzingDocument || isSendingMessage || isRecordingDocument}
          />
         </div>
        )}
@@ -342,7 +360,7 @@ function ChatForm() {
        <Button
         type="submit"
         className="bg-primary text-white"
-        disabled={!uploaded || isAnalyzingDocument || isSendingMessage}
+        disabled={isProcessing || isAnalyzingDocument || isSendingMessage || isRecordingDocument}
        >
         Send
        </Button>

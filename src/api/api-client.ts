@@ -16,7 +16,6 @@ export const apiClient = axios.create({
    ? "http://localhost:3500"
    : "https://the-ai-detective-be.vercel.app",
  withCredentials: true,
- timeout: 60000,
 });
 
 export const apiClientWithAuth = (token: string, baseUrl?: string, withCredentials: boolean = true) => {
@@ -28,7 +27,6 @@ export const apiClientWithAuth = (token: string, baseUrl?: string, withCredentia
    ? "http://localhost:3500"
    : "https://the-ai-detective-be.vercel.app",
   withCredentials: withCredentials,
-  timeout: 60000,
  });
 
  client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
