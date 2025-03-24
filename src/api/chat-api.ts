@@ -5,30 +5,40 @@ import {
  AnalyzeDocumentResponse,
  SendMessagePayload,
  SendMessageResponse,
+ UploadDocumentTransformedResponse,
 } from "@/types/chat-types";
 import { ENDPOINTS } from "./constants";
 import { apiClientWithAuth } from "./api-client";
 import { AxiosError } from "axios";
 
+const API_BASE_URL = "https://app.customgpt.ai/api/v1";
+const PROJECT_ID = import.meta.env.VITE_CUSTOMGPT_PROJECT_ID || "66012";
+
 export const uploadDocument = async (
  payload: UploadDocumentPayload,
  token: string,
-): Promise<UploadDocumentResponse> => {
+): Promise<UploadDocumentTransformedResponse> => {
  try {
-  const client = apiClientWithAuth(token);
+  const client = apiClientWithAuth(token, API_BASE_URL, false);
   const formData = new FormData();
   if (payload.file) {
-   formData.append("document", payload.file);
+   formData.append("file", payload.file);
+   formData.append("is_ocr_enabled", "true");
   }
-  const response = await client.post<UploadDocumentResponse>(`${ENDPOINTS.CHAT}/uploadDocument`, formData, {
+  const response = await client.post<UploadDocumentResponse>(`/projects/${PROJECT_ID}/sources`, formData, {
    headers: {
     "Content-Type": "multipart/form-data",
    },
   });
-  return response.data;
+  return {
+   success: true,
+   message: "Document uploaded successfully",
+   sourceId: response.data.data.pages[0].id,
+   fileName: payload.file.name,
+  };
  } catch (error) {
   const axiosError = error as AxiosError<{ message: string }>;
-  throw axiosError.response?.data || error;
+  throw new Error(`Failed to upload document as source: ${axiosError.response?.data || axiosError.message}`);
  }
 };
 

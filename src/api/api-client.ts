@@ -19,14 +19,15 @@ export const apiClient = axios.create({
  timeout: 60000,
 });
 
-export const apiClientWithAuth = (token: string) => {
+export const apiClientWithAuth = (token: string, baseUrl?: string, withCredentials: boolean = true) => {
  console.log(token);
  const client = axios.create({
-  baseURL:
-   import.meta.env.VITE_NODE_ENV === "development"
-    ? "http://localhost:3500"
-    : "https://the-ai-detective-be.vercel.app",
-  withCredentials: true,
+  baseURL: baseUrl
+   ? baseUrl
+   : import.meta.env.VITE_NODE_ENV === "development"
+   ? "http://localhost:3500"
+   : "https://the-ai-detective-be.vercel.app",
+  withCredentials: withCredentials,
   timeout: 60000,
  });
 

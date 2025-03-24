@@ -12,7 +12,7 @@ import {
  SendMessagePayload,
  SendMessageResponse,
  UploadDocumentPayload,
- UploadDocumentResponse,
+ UploadDocumentTransformedResponse,
  // DeleteChatResponse,
  // Chat,
  // ChatResponse,
@@ -29,11 +29,13 @@ import { RootState } from "@/redux/store";
 import toast from "react-hot-toast";
 // import { useQuery } from "@tanstack/react-query";
 
+const API_KEY = import.meta.env.VITE_CUSTOMGPT_API_KEY;
+
 export type ApiError = { message: string };
 
 const QUERY_KEY = "CHATS";
 type ErrorFnE = (error: ApiError) => void;
-type SuccessUploadDocumentFn = (data: UploadDocumentResponse) => void;
+type SuccessUploadDocumentFn = (data: UploadDocumentTransformedResponse) => void;
 type SuccessAnalyzeDocumentFn = (data: AnalyzeDocumentResponse) => void;
 type SuccessSendMessageFn = (data: SendMessageResponse) => void;
 // type SuccessEditChatFn = (data: UpdateChatResponse) => void;
@@ -49,9 +51,8 @@ type SuccessSendMessageFn = (data: SendMessageResponse) => void;
 
 export const useUploadDocument = (onSuccessFn?: SuccessUploadDocumentFn, onErrorFn?: ErrorFnE) => {
  const queryClient = useQueryClient();
- const token = useSelector((state: RootState) => state.auth.token);
- return useMutation<UploadDocumentResponse, ApiError, UploadDocumentPayload>({
-  mutationFn: payload => uploadDocument(payload, token),
+ return useMutation<UploadDocumentTransformedResponse, ApiError, UploadDocumentPayload>({
+  mutationFn: payload => uploadDocument(payload, API_KEY),
   onSuccess: data => {
    queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
    onSuccessFn?.(data);

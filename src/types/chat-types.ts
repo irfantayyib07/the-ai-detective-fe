@@ -8,11 +8,21 @@ export type Message = {
 
 export type UploadDocumentPayload = { file: File };
 
-export type UploadDocumentResponse = {
+export type UploadDocumentTransformedResponse = {
  success: boolean;
  message: string;
  sourceId: string;
  fileName: string;
+};
+
+export type UploadDocumentResponse = {
+ data: {
+  pages: [
+   {
+    id: string;
+   },
+  ];
+ };
 };
 
 export type AnalyzeDocumentPayload = {
