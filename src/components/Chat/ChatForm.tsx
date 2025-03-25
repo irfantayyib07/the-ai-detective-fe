@@ -96,10 +96,6 @@ function ChatForm() {
      return msg;
     }),
    );
-
-   setTimeout(() => {
-    scrollToBottom();
-   }, 100);
   },
   () => {
    setMessages(prev => prev.filter(msg => !msg.pending));
@@ -125,10 +121,6 @@ function ChatForm() {
      return msg;
     }),
    );
-
-   setTimeout(() => {
-    scrollToBottom();
-   }, 100);
   },
   () => {
    setMessages(prev => prev.filter(msg => !msg.pending));
