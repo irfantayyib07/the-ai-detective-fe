@@ -1,7 +1,8 @@
-import { ChangeEvent, useRef, useState } from "react";
+import { useRef, useState, useCallback } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,10 +10,11 @@ import { Label } from "../ui/label";
 import { useAnalyzeDocument, useSendMessage, useUploadDocument } from "@/services/chat-services";
 import { Message, UploadDocumentPayload } from "@/types/chat-types";
 import toast from "react-hot-toast";
-import { Loader2, User, FileText, Printer } from "lucide-react";
+import { Loader2, User, FileText, Printer, Upload, RefreshCw } from "lucide-react";
 import { cn, markdownToHtml } from "@/lib/utils";
 import { handlePrintResponse } from "@/lib/handlePrintAnalysis";
 import { useRecordDocument } from "@/services/document-services";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const formSchema = z.object({
  question: z.string().min(1, "Please enter a question"),
@@ -30,6 +32,9 @@ function ChatForm() {
  const [sessionId, setSessionId] = useState<string>("");
  const [messages, setMessages] = useState<Message[]>([]);
  const [downloadingMessageId, setDownloadingMessageId] = useState<string | null>(null);
+ const [fileUploadError, setFileUploadError] = useState<string | null>(null);
+ const [showTooltip, setShowTooltip] = useState<boolean>(false);
+ const [analysisCompleted, setAnalysisCompleted] = useState<boolean>(false);
 
  const promptSuggestions = [
   "Can you analyze this text for AI-generated content?",
@@ -54,7 +59,8 @@ function ChatForm() {
 
  const { mutate: uploadDocument, isPending: isUploadingDocument } = useUploadDocument(
   data => {
-   toast.success(data.message);
+   setFileUploadError(null);
+   toast.success(data.message || "Document uploaded successfully");
    recordDocument({ sourceId: String(data.sourceId) });
    setSourceId(String(data.sourceId));
    setFileName(data.fileName);
@@ -63,15 +69,20 @@ function ChatForm() {
 
    const systemMessage: Message = {
     id: `system-${Date.now()}`,
-    aiResponse: `Document "${fileName}" uploaded successfully.`,
-    aiResponseHtml: `Document "${fileName}" uploaded successfully.`,
+    aiResponse: `Document "${data.fileName}" uploaded successfully.`,
+    aiResponseHtml: `Document "${data.fileName}" uploaded successfully.`,
     isUser: false,
    };
 
    setMessages(prev => [...prev, systemMessage]);
   },
-  () => {
+  error => {
+   // Improved error handling
+   console.error("File upload error:", error);
    setUploaded(false);
+   setFileName("No file chosen (upload failed)");
+   setFileUploadError(error?.message || "Failed to upload document. Please try again.");
+   toast.error("Failed to upload document. Please try again.");
   },
  );
 
@@ -96,9 +107,20 @@ function ChatForm() {
      return msg;
     }),
    );
+
+   // Set analysis completed flag and show tooltip
+   setAnalysisCompleted(true);
+   setShowTooltip(true);
+
+   // Auto-hide tooltip after 2 seconds
+   setTimeout(() => {
+    setShowTooltip(false);
+   }, 2000);
   },
-  () => {
+  error => {
+   console.error("Analysis error:", error);
    setMessages(prev => prev.filter(msg => !msg.pending));
+   toast.error("Failed to analyze document. Please try again.");
   },
  );
 
@@ -122,8 +144,10 @@ function ChatForm() {
     }),
    );
   },
-  () => {
+  error => {
+   console.error("Message error:", error);
    setMessages(prev => prev.filter(msg => !msg.pending));
+   toast.error("Failed to send message. Please try again.");
   },
  );
 
@@ -133,22 +157,64 @@ function ChatForm() {
   }
  };
 
- const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (file) {
-   setFileName(file.name);
-   setUploaded(false);
+ const handleFileUpload = (file: File) => {
+  if (!file) {
+   toast.error("No file selected");
+   return;
+  }
+
+  // Check file type (optional: adjust allowed types as needed)
+  const allowedTypes = [
+   "text/plain",
+   "application/pdf",
+   "application/msword",
+   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ];
+  if (!allowedTypes.includes(file.type) && file.type !== "") {
+   toast.error(`File type '${file.type}' not supported. Please upload a document file.`);
+   setFileUploadError(`File type '${file.type}' not supported. Please upload a document file.`);
+   return;
+  }
+
+  // Check file size (optional: adjust max size as needed)
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if (file.size > maxSize) {
+   toast.error(`File too large. Maximum size is ${maxSize / 1024 / 1024}MB.`);
+   setFileUploadError(`File too large. Maximum size is ${maxSize / 1024 / 1024}MB.`);
+   return;
+  }
+
+  setFileUploadError(null);
+  const payload: UploadDocumentPayload = { file };
+
+  try {
+   uploadDocument(payload);
+  } catch (err) {
+   console.error("Error during file upload:", err);
+   toast.error("Failed to process file upload. Please try again.");
+   setFileUploadError("Failed to process file upload. Please try again.");
   }
  };
 
- const handleUpload = () => {
-  const fileInput = fileInputRef.current;
-  if (!fileInput || !fileInput.files || fileInput.files.length === 0) return;
+ const onDrop = useCallback((acceptedFiles: File[]) => {
+  if (acceptedFiles.length > 0) {
+   const file = acceptedFiles[0];
+   setFileName(file.name);
+   setUploaded(false);
+   setFileUploadError(null);
+   handleFileUpload(file);
+  } else {
+   setFileUploadError("No valid files dropped");
+  }
+ }, []);
 
-  const file = fileInput.files[0];
-  const payload: UploadDocumentPayload = { file };
-  uploadDocument(payload);
- };
+ const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  onDrop,
+  noClick: false,
+  multiple: false,
+  disabled:
+   isUploadingDocument || isProcessing || isAnalyzingDocument || isSendingMessage || isRecordingDocument,
+ });
 
  const onSubmit = (data: FormValues) => {
   if (!uploaded) {
@@ -198,52 +264,102 @@ function ChatForm() {
   handleSubmit(onSubmit)();
  };
 
+ // For manual file upload button
+ const triggerFileInput = () => {
+  if (fileInputRef.current) {
+   fileInputRef.current.click();
+  }
+ };
+
+ // Handle reset for next document
+ const handleResetForNextDocument = () => {
+  setSessionId("");
+  setSourceId("");
+  setMessages([]);
+  setAnalysisCompleted(false);
+  setUploaded(false);
+  setFileName("No file chosen");
+  reset();
+  setShowTooltip(false);
+ };
+
  return (
   <section className="w-full max-w-[750px] mx-auto space-y-[25px]">
-   {/* File Upload Section */}
    <Card className="px-[20px] pt-[20px] pb-10">
     <Label className="block text-primary font-semibold tracking-[-2%] mb-5">Upload Document</Label>
-    <CardContent className="p-0 flex flex-col gap-3 xs:flex-row items-center justify-between">
-     <div className="flex items-center gap-2 min-w-[250px] w-full xs:w-auto">
-      <label
-       tabIndex={0}
-       htmlFor="fileInput"
-       className="text-[11px] bg-secondary px-[15px] py-2 rounded-[10px] cursor-pointer text-primary font-semibold tracking-[-2%] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus:outline-none"
-       onKeyDown={e => {
-        if (e.key === "Enter" || e.key === " ") {
-         e.preventDefault();
-         fileInputRef?.current?.click();
-        }
-       }}
-      >
-       Choose File
-      </label>
-      <input id="fileInput" type="file" className="hidden" onChange={handleFileChange} ref={fileInputRef} />
-      <span className="text-primary text-[11px] tracking-[-2%]">{fileName}</span>
-     </div>
-     <Button
-      onClick={handleUpload}
-      disabled={
-       isUploadingDocument ||
-       isProcessing ||
-       isAnalyzingDocument ||
-       isSendingMessage ||
-       !fileInputRef.current?.files?.length ||
-       isRecordingDocument
-      }
-      className="bg-primary text-white w-full xs:w-auto"
+    <CardContent className="p-0">
+     <div
+      {...getRootProps()}
+      className={cn(
+       "border-2 border-dashed rounded-lg p-6 transition-colors",
+       isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground/20 hover:border-primary/50",
+       isUploadingDocument || isProcessing ? "opacity-70 cursor-not-allowed" : "cursor-pointer",
+       fileUploadError ? "border-red-500 bg-red-50" : "",
+      )}
      >
-      {(isUploadingDocument || isProcessing) && <Loader2 size={16} className="animate-spin" />}
-      {isProcessing ? "Processing..." : isUploadingDocument ? "Uploading..." : "Upload"}
-     </Button>
+      <input {...getInputProps()} ref={fileInputRef} />
+      <div className="flex flex-col items-center justify-center text-center">
+       <Upload className="h-10 w-10 text-muted-foreground mb-2" />
+       <p className="text-sm font-medium">
+        {isDragActive ? "Drop the file here" : "Drag & drop your file here"}
+       </p>
+       <p className="text-xs text-muted-foreground mt-1 mb-3">or</p>
+       <Button
+        type="button"
+        variant="outline"
+        onClick={triggerFileInput}
+        disabled={
+         isUploadingDocument || isProcessing || isAnalyzingDocument || isSendingMessage || isRecordingDocument
+        }
+       >
+        Browse files
+       </Button>
+       <p className="text-xs text-muted-foreground mt-3">
+        Current file: {fileName}
+        {isUploadingDocument && (
+         <div className="mt-2 ml-2 text-primary">
+          <Loader2 size={12} className="inline animate-spin mr-1" />
+          Uploading...
+         </div>
+        )}
+        {isProcessing && (
+         <div className="mt-2 ml-2 text-primary">
+          <Loader2 size={12} className="inline animate-spin mr-1" />
+          Processing...
+         </div>
+        )}
+       </p>
+       {fileUploadError && <p className="text-xs text-red-500 mt-2">{fileUploadError}</p>}
+      </div>
+     </div>
     </CardContent>
    </Card>
 
-   {/* Chat Messages */}
    <Card className="px-[20px] pt-[20px] pb-6">
     <div className="flex justify-between items-center mb-5">
      <Label className="block text-primary font-semibold tracking-[-2%]">Conversation</Label>
+
+     {analysisCompleted && (
+      <TooltipProvider>
+       <Tooltip open={showTooltip} onOpenChange={setShowTooltip}>
+        <TooltipTrigger asChild>
+         <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-secondary-light"
+          onClick={handleResetForNextDocument}
+         >
+          <RefreshCw size={16} />
+         </Button>
+        </TooltipTrigger>
+        <TooltipContent side="top">
+         <p>Click here to analyze the next document</p>
+        </TooltipContent>
+       </Tooltip>
+      </TooltipProvider>
+     )}
     </div>
+
     <CardContent
      ref={chatContainerRef}
      className="flex flex-col space-y-4 max-h-[400px] overflow-y-auto mb-4 p-2 pr-8 scroll-smooth"
@@ -352,7 +468,7 @@ function ChatForm() {
        <Button
         type="submit"
         className="bg-primary text-white"
-        disabled={isProcessing || isAnalyzingDocument || isSendingMessage || isRecordingDocument}
+        disabled={isProcessing || isAnalyzingDocument || isSendingMessage || isRecordingDocument || !uploaded}
        >
         Send
        </Button>
