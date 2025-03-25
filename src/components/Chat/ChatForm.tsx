@@ -246,19 +246,19 @@ function ChatForm() {
     </div>
     <CardContent
      ref={chatContainerRef}
-     className="flex flex-col space-y-4 max-h-[400px] overflow-y-auto mb-4 p-2 pr-7 scroll-smooth"
+     className="flex flex-col space-y-4 max-h-[400px] overflow-y-auto mb-4 p-2 pr-8 scroll-smooth"
     >
      {messages.length === 0 ? (
       <div className="flex flex-col items-center justify-center h-32 text-muted-foreground text-sm">
        <FileText size={24} className="mb-2" />
-       <p>Upload a document and ask questions</p>
+       <p className="text-center">Upload a document and ask questions</p>
       </div>
      ) : (
       messages.map(message => (
-       <div key={message.id} className={cn("flex w-full", message.isUser ? "justify-end" : "justify-start")}>
+       <div key={message.id} className={cn("flex", message.isUser ? "justify-end" : "justify-start")}>
         <div
          className={cn(
-          "flex items-start gap-2 max-w-[80%] rounded-lg p-3 relative",
+          "flex items-start gap-2 sm:max-w-[80%] rounded-lg p-3 relative",
           message.isUser
            ? "bg-primary text-white rounded-br-none"
            : "bg-secondary text-primary rounded-bl-none",
