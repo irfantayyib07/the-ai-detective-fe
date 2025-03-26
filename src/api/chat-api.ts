@@ -12,7 +12,7 @@ import { apiClientWithAuth } from "./api-client";
 import { AxiosError } from "axios";
 
 const API_BASE_URL = "https://app.customgpt.ai/api/v1";
-const PROJECT_ID = import.meta.env.VITE_CUSTOMGPT_PROJECT_ID || "66012";
+const PROJECT_ID = import.meta.env.VITE_CUSTOMGPT_PROJECT_ID || "66518";
 
 export const uploadDocument = async (
  payload: UploadDocumentPayload,

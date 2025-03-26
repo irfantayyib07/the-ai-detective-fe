@@ -163,27 +163,6 @@ function ChatForm() {
    return;
   }
 
-  // Check file type (optional: adjust allowed types as needed)
-  const allowedTypes = [
-   "text/plain",
-   "application/pdf",
-   "application/msword",
-   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  ];
-  if (!allowedTypes.includes(file.type) && file.type !== "") {
-   toast.error(`File type '${file.type}' not supported. Please upload a document file.`);
-   setFileUploadError(`File type '${file.type}' not supported. Please upload a document file.`);
-   return;
-  }
-
-  // Check file size (optional: adjust max size as needed)
-  const maxSize = 10 * 1024 * 1024; // 10MB
-  if (file.size > maxSize) {
-   toast.error(`File too large. Maximum size is ${maxSize / 1024 / 1024}MB.`);
-   setFileUploadError(`File too large. Maximum size is ${maxSize / 1024 / 1024}MB.`);
-   return;
-  }
-
   setFileUploadError(null);
   const payload: UploadDocumentPayload = { file };
 
