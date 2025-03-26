@@ -53,7 +53,7 @@ function ChatForm() {
 
  const { mutate: recordDocument, isPending: isRecordingDocument } = useRecordDocument(async () => {
   await new Promise(res => {
-   setTimeout(res, 6000);
+   setTimeout(res, 10000);
   });
   setIsProcessing(false);
  });
