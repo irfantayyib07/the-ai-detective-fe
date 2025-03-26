@@ -13,8 +13,9 @@ import toast from "react-hot-toast";
 import { Loader2, User, FileText, Printer, Upload, RefreshCw } from "lucide-react";
 import { cn, markdownToHtml } from "@/lib/utils";
 import { handlePrintResponse } from "@/lib/handlePrintAnalysis";
-import { useRecordDocument } from "@/services/document-services";
+import { useDeleteAllDocuments, useRecordDocument } from "@/services/document-services";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useDeleteAllConversations } from "@/services/conversation-services";
 
 const formSchema = z.object({
  question: z.string().min(1, "Please enter a question"),
@@ -250,6 +251,9 @@ function ChatForm() {
   }
  };
 
+ const { mutate: deleteAllConversations } = useDeleteAllConversations();
+ const { mutate: deleteAllDocuments } = useDeleteAllDocuments();
+
  // Handle reset for next document
  const handleResetForNextDocument = () => {
   setSessionId("");
@@ -260,6 +264,8 @@ function ChatForm() {
   setFileName("No file chosen");
   reset();
   setShowTooltip(false);
+  deleteAllConversations({});
+  deleteAllDocuments({});
  };
 
  return (
