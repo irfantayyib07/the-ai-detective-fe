@@ -1,5 +1,6 @@
 import {
  analyzeDocument,
+ reindexDocument,
  sendMessage,
  uploadDocument,
  // deleteChat,
@@ -9,6 +10,8 @@ import {
 import {
  AnalyzeDocumentPayload,
  AnalyzeDocumentResponse,
+ ReindexDocumentPayload,
+ ReindexDocumentResponse,
  SendMessagePayload,
  SendMessageResponse,
  UploadDocumentPayload,
@@ -36,6 +39,7 @@ export type ApiError = { message: string };
 const QUERY_KEY = "CHATS";
 type ErrorFnE = (error: ApiError) => void;
 type SuccessUploadDocumentFn = (data: UploadDocumentTransformedResponse) => void;
+type SuccessReindexDocumentFn = (data: ReindexDocumentResponse) => void;
 type SuccessAnalyzeDocumentFn = (data: AnalyzeDocumentResponse) => void;
 type SuccessSendMessageFn = (data: SendMessageResponse) => void;
 // type SuccessEditChatFn = (data: UpdateChatResponse) => void;
@@ -59,6 +63,22 @@ export const useUploadDocument = (onSuccessFn?: SuccessUploadDocumentFn, onError
   },
   onError: error => {
    toast.error(error.message || "Document upload failed");
+   onErrorFn?.(error);
+  },
+ });
+};
+
+export const useReindexDocument = (onSuccessFn?: SuccessReindexDocumentFn, onErrorFn?: ErrorFnE) => {
+ const queryClient = useQueryClient();
+ const token = useSelector((state: RootState) => state.auth.token);
+ return useMutation<ReindexDocumentResponse, ApiError, ReindexDocumentPayload>({
+  mutationFn: payload => reindexDocument(payload, token),
+  onSuccess: data => {
+   queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+   onSuccessFn?.(data);
+  },
+  onError: error => {
+   toast.error(error.message || "Document reindexing failed");
    onErrorFn?.(error);
   },
  });

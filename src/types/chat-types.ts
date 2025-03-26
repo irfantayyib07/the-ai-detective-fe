@@ -25,6 +25,16 @@ export type UploadDocumentResponse = {
  };
 };
 
+export type ReindexDocumentPayload = {
+ pageId: string;
+};
+
+export type ReindexDocumentResponse = {
+ success: boolean;
+ data: boolean;
+ message: string;
+};
+
 export type AnalyzeDocumentPayload = {
  question: string;
  sourceId: string;

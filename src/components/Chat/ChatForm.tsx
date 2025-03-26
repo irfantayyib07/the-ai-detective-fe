@@ -7,7 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "../ui/label";
-import { useAnalyzeDocument, useSendMessage, useUploadDocument } from "@/services/chat-services";
+import {
+ useAnalyzeDocument,
+ useReindexDocument,
+ useSendMessage,
+ useUploadDocument,
+} from "@/services/chat-services";
 import { Message, UploadDocumentPayload } from "@/types/chat-types";
 import toast from "react-hot-toast";
 import { Loader2, User, FileText, Printer, Upload, RefreshCw } from "lucide-react";
@@ -28,7 +33,7 @@ function ChatForm() {
  const chatContainerRef = useRef<HTMLDivElement>(null);
  const [fileName, setFileName] = useState<string>("No file chosen");
  const [uploaded, setUploaded] = useState<boolean>(false);
- const [isProcessing, setIsProcessing] = useState<boolean>(false);
+ // const [isProcessing, setIsProcessing] = useState<boolean>(false);
  const [sourceId, setSourceId] = useState<string>("");
  const [sessionId, setSessionId] = useState<string>("");
  const [messages, setMessages] = useState<Message[]>([]);
@@ -51,22 +56,20 @@ function ChatForm() {
   },
  });
 
- const { mutate: recordDocument, isPending: isRecordingDocument } = useRecordDocument(async () => {
-  await new Promise(res => {
-   setTimeout(res, 10000);
-  });
-  setIsProcessing(false);
- });
+ const { mutate: reindexDocument, isPending: isReindexingDocument } = useReindexDocument();
+
+ const { mutate: recordDocument, isPending: isRecordingDocument } = useRecordDocument();
 
  const { mutate: uploadDocument, isPending: isUploadingDocument } = useUploadDocument(
   data => {
    setFileUploadError(null);
    toast.success(data.message || "Document uploaded successfully");
+   reindexDocument({ pageId: String(data.sourceId) });
    recordDocument({ sourceId: String(data.sourceId) });
    setSourceId(String(data.sourceId));
    setFileName(data.fileName);
    setUploaded(true);
-   setIsProcessing(true);
+   // setIsProcessing(true);
 
    const systemMessage: Message = {
     id: `system-${Date.now()}`,
@@ -193,7 +196,11 @@ function ChatForm() {
   noClick: false,
   multiple: false,
   disabled:
-   isUploadingDocument || isProcessing || isAnalyzingDocument || isSendingMessage || isRecordingDocument,
+   isUploadingDocument ||
+   isReindexingDocument ||
+   isAnalyzingDocument ||
+   isSendingMessage ||
+   isRecordingDocument,
  });
 
  const onSubmit = (data: FormValues) => {
@@ -278,7 +285,7 @@ function ChatForm() {
       className={cn(
        "border-2 border-dashed rounded-lg p-6 transition-colors",
        isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground/20 hover:border-primary/50",
-       isUploadingDocument || isProcessing ? "opacity-70 cursor-not-allowed" : "cursor-pointer",
+       isUploadingDocument || isReindexingDocument ? "opacity-70 cursor-not-allowed" : "cursor-pointer",
        fileUploadError ? "border-red-500 bg-red-50" : "",
       )}
      >
@@ -294,7 +301,11 @@ function ChatForm() {
         variant="outline"
         onClick={triggerFileInput}
         disabled={
-         isUploadingDocument || isProcessing || isAnalyzingDocument || isSendingMessage || isRecordingDocument
+         isUploadingDocument ||
+         isReindexingDocument ||
+         isAnalyzingDocument ||
+         isSendingMessage ||
+         isRecordingDocument
         }
        >
         Browse files
@@ -307,7 +318,7 @@ function ChatForm() {
           Uploading...
          </div>
         )}
-        {isProcessing && (
+        {isReindexingDocument && (
          <div className="mt-2 ml-2 text-primary">
           <Loader2 size={12} className="inline animate-spin mr-1" />
           Processing...
@@ -413,7 +424,7 @@ function ChatForm() {
      )}
     </CardContent>
 
-    {uploaded && !isProcessing && messages.length <= 1 && (
+    {uploaded && !isReindexingDocument && messages.length <= 1 && (
      <div className="px-2 mb-4">
       <p className="text-sm text-muted-foreground mb-2">Suggested questions:</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -444,7 +455,7 @@ function ChatForm() {
           onChange={onChange}
           placeholder="Ask a question about the document..."
           className="bg-white border-none text-primary text-sm sm:text-base md:text-base focus-visible:ring-0 focus-visible:ring-transparent"
-          disabled={isProcessing || isAnalyzingDocument || isSendingMessage || isRecordingDocument}
+          disabled={isReindexingDocument || isAnalyzingDocument || isSendingMessage || isRecordingDocument}
          />
         </div>
        )}
@@ -453,7 +464,9 @@ function ChatForm() {
        <Button
         type="submit"
         className="bg-primary text-white"
-        disabled={isProcessing || isAnalyzingDocument || isSendingMessage || isRecordingDocument || !uploaded}
+        disabled={
+         isReindexingDocument || isAnalyzingDocument || isSendingMessage || isRecordingDocument || !uploaded
+        }
        >
         Send
        </Button>

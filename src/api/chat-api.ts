@@ -6,6 +6,8 @@ import {
  SendMessagePayload,
  SendMessageResponse,
  UploadDocumentTransformedResponse,
+ ReindexDocumentResponse,
+ ReindexDocumentPayload,
 } from "@/types/chat-types";
 import { ENDPOINTS } from "./constants";
 import { apiClientWithAuth } from "./api-client";
@@ -39,6 +41,20 @@ export const uploadDocument = async (
  } catch (error) {
   const axiosError = error as AxiosError<{ message: string }>;
   throw new Error(`Failed to upload document as source: ${axiosError.response?.data || axiosError.message}`);
+ }
+};
+
+export const reindexDocument = async (
+ payload: ReindexDocumentPayload,
+ token: string,
+): Promise<ReindexDocumentResponse> => {
+ try {
+  const client = apiClientWithAuth(token);
+  const response = await client.post<ReindexDocumentResponse>(`${ENDPOINTS.CHAT}/reindexDocument`, payload);
+  return response.data;
+ } catch (error) {
+  const axiosError = error as AxiosError<{ message: string }>;
+  throw axiosError.response?.data || error;
  }
 };
 
