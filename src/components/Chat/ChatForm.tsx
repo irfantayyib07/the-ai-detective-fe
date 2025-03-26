@@ -172,6 +172,19 @@ function ChatForm() {
    return;
   }
 
+  const allowedTypes = [
+   "text/plain",
+   "application/pdf",
+   "application/msword",
+   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ];
+
+  if (!allowedTypes.includes(file.type) && file.type !== "") {
+   toast.error(`File type '${file.type}' not supported. Please upload a document file.`);
+   setFileUploadError(`File type '${file.type}' not supported. Please upload a document file.`);
+   return;
+  }
+
   setFileUploadError(null);
   const payload: UploadDocumentPayload = { file };
 
