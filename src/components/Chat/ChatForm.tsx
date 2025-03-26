@@ -7,12 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "../ui/label";
-import {
- useAnalyzeDocument,
- // useReindexDocument,
- useSendMessage,
- useUploadDocument,
-} from "@/services/chat-services";
+import { useAnalyzeDocument, useSendMessage, useUploadDocument } from "@/services/chat-services";
 import { Message, UploadDocumentPayload } from "@/types/chat-types";
 import toast from "react-hot-toast";
 import { Loader2, User, FileText, Printer, Upload, RefreshCw } from "lucide-react";
@@ -55,8 +50,6 @@ function ChatForm() {
    question: "",
   },
  });
-
- // const { mutate: reindexDocument, isPending: isReindexingDocument } = useReindexDocument();
 
  const { mutate: recordDocument, isPending: isRecordingDocument } = useRecordDocument(async () => {
   await new Promise(res => {
